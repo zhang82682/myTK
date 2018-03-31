@@ -1,0 +1,5 @@
+com\myTk\App.class
+com\tk\TKBaseMapper.class
+com\myTk\TestTable.class
+com\myTk\TestTableMapper.class
+com\myTk\TestService.class

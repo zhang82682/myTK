@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+	<context:property-placeholder location="classpath:person.properties" />
+	<!-- 包扫描、只要标注了@Controller、@Service、@Repository，@Component -->
+	<!-- <context:component-scan base-package="com.atguigu" use-default-filters="false"></context:component-scan> -->
+
+	<context:component-scan base-package="com.myTk"></context:component-scan>
+
+
+	<!-- 开启基于注解版的切面功能 -->
+	<aop:aspectj-autoproxy></aop:aspectj-autoproxy>
+
+	<!-- <tx:annotation-driven/> -->
+
+
+	<!-- 数据库连接池 -->
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+		destroy-method="close">
+		<property name="url" value="jdbc:mysql://192.168.166.100:3306/test" />
+		<property name="username" value="root" />
+		<property name="password" value="123456" />
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="maxActive" value="10" />
+		<property name="minIdle" value="5" />
+	</bean>
+
+	<!-- 配置sqlsessionFactory -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="configLocation" value="classpath:mybatis/SqlMapConfig.xml"></property>
+		<property name="dataSource" ref="dataSource"></property>
+		<property name="mapperLocations" value="classpath*:com/myTk/*.xml" />
+	</bean>
+
+	<bean class="tk.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+		<property name="basePackage" value="com.myTk" />
+		<property name="properties">
+			<value>
+				mappers=tk.mybatis.mapper.common.Mapper,tk.mybatis.mapper.common.special.InsertListMapper
+			</value>
+		</property>
+	</bean>
+
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<!-- 数据源 -->
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<!-- 通知 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<!-- 传播行为 -->
+			<tx:method name="save*" propagation="REQUIRED"
+				rollback-for="Exception" timeout="3" />
+			<tx:method name="insert*" propagation="REQUIRED"
+				rollback-for="Exception" timeout="3" />
+			<tx:method name="add*" propagation="REQUIRED" rollback-for="Exception"
+				timeout="3" />
+			<tx:method name="create*" propagation="REQUIRED"
+				rollback-for="Exception" timeout="3" />
+			<tx:method name="delete*" propagation="REQUIRED"
+				rollback-for="Exception" timeout="3" />
+			<tx:method name="update*" propagation="REQUIRED"
+				rollback-for="Exception" timeout="3" />
+			<tx:method name="accept*" propagation="REQUIRED"
+				rollback-for="Exception" timeout="3" />
+			<tx:method name="complete*" propagation="REQUIRED"
+				rollback-for="Exception" timeout="3" />
+			<tx:method name="find*" propagation="SUPPORTS" read-only="true"
+				timeout="3" />
+			<tx:method name="select*" propagation="SUPPORTS" read-only="true"
+				timeout="3" />
+			<tx:method name="get*" propagation="SUPPORTS" read-only="true"
+				timeout="3" />
+			<tx:method name="check*" propagation="SUPPORTS" read-only="true"
+				timeout="3" />
+			<tx:method name="qry*" propagation="SUPPORTS" read-only="true"
+				timeout="3" />
+		</tx:attributes>
+	</tx:advice>
+	<!-- 切面 -->
+	<aop:config>
+		<aop:advisor advice-ref="txAdvice" pointcut="execution(* com.myTk.*.*(..))" />
+	</aop:config>
+</beans>
